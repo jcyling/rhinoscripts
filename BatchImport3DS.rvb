@@ -1,0 +1,61 @@
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+ ' BatchImport3DS.rvb -- June 2021
+ ' Batch 3DS Import by Jane Ling, edited from script by Dale Fugier.
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+
+Call BatchImport()
+ 
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+ ' Main subroutine
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub BatchImport()
+ 
+	Dim sFolder, oFSO, oFolder
+ 
+	sFolder = Rhino.BrowseForFolder(, "Select folder to process", "Batch import")
+	If IsNull(sFolder) Then Exit Sub
+ 
+	Set oFSO = CreateObject("Scripting.FileSystemObject") 
+	Set oFolder = oFSO.GetFolder(sFolder)
+ 
+	Call Rhino.Prompt("Processing...")
+	Call RecurseImport(oFolder)
+ 
+	Call Rhino.DocumentModified(False)
+	Call Rhino.Print("Done!")
+ 
+End Sub
+ 
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+ ' RecurseImport
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub RecurseImport(oFolder)
+ 
+	Dim oFile, oFSO, oSubFolder, strOpen, strFilename, dModified, eName, ext
+
+	Set oFSO = CreateObject("Scripting.FileSystemObject") 
+
+	For Each oFile In oFolder.Files
+		eName = LCase(oFSO.GetExtensionName(oFile.Path))
+		ext = "3ds"
+		If eName <> "" And (eName = ext) Then			
+			strOpen = LCase(oFile.Path)
+			strFilename = oFile.Name
+	
+			Call Rhino.Print("Importing ")
+			Call Rhino.Command("_NoEcho _-Import " & chr(34) & strOpen & chr(34) & " _Enter")
+				
+		End If
+	Next
+	
+	' If you want to recurse folders,
+	' just un-comment the following lines.
+	For Each oSubFolder In oFolder.SubFolders
+		Call RecurseImport(oSubFolder)
+	Next
+
+End Sub 
+ 
+ 
+ '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
